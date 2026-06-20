@@ -6,16 +6,17 @@
 > terminal twin into a Slack bot** (same brain — `claude -p` — new face: Slack).
 > Do this, in order:
 >
-> 1. **Detect the stack** of the twin in the current project: Node (a
+> 1. **Follow `PLAN_OF_ACTION.md`** — the ordered execution checklist (works for
+>    Claude *or* Codex). It tells you exactly what to do and links to the code.
+> 2. **Detect the stack** of the twin in the current project: Node (a
 >    `twin.js`/`*.js`, `package.json`) or Python (a `twin.py`/`*.py`,
 >    `requirements.txt`). If unclear, ask the user one question.
-> 2. **Fetch and follow the matching guide** end-to-end — it has the full code
->    and steps:
+> 3. **Fetch and follow the matching guide** for the full code and steps:
 >    - **Node:** `https://raw.githubusercontent.com/luvishg-growthx/upgrading-your-bot-to-being-a-slack-bot/main/guide%20for%20implementing%20slack.md`
 >    - **Python:** `https://raw.githubusercontent.com/luvishg-growthx/upgrading-your-bot-to-being-a-slack-bot/main/guide%20for%20implementing%20slack%20(python).md`
-> 3. The guide tells you to **upgrade `twin.js`/`twin.py` in place** into the
->    Slack bot (don't create a parallel file), install deps, and walk the user
->    through creating the Slack app + tokens. Follow it exactly.
+> 4. The plan + guide tell you to **upgrade `twin.js`/`twin.py` in place** into
+>    the Slack bot (don't create a parallel file), install deps, and walk the
+>    user through creating the Slack app + tokens. Follow them exactly.
 >
 > Everything below is human-facing context.
 
@@ -91,6 +92,7 @@ instruction block at the top of this file).
 
 | Path                                       | What it is                                   |
 | ------------------------------------------ | -------------------------------------------- |
+| `PLAN_OF_ACTION.md`                        | Ordered execution checklist (Claude/Codex)   |
 | `guide for implementing slack.md`          | Paste-into-Claude guide — **Node** twin      |
 | `guide for implementing slack (python).md` | Paste-into-Claude guide — **Python** twin    |
 | `SLACK_APP_SETUP.md`                       | One-time Slack app creation (scopes, tokens) |
