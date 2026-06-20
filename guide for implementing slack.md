@@ -1,6 +1,6 @@
 # Guide: upgrade your twin into a Slack bot (Node.js)
 
-**You are Claude Code, reading this file inside the user's twin project.** The
+**You are Claude Code or Codex (or any coding agent), reading this file inside the user's twin project.** These files are ready-made — don't rebuild the feature from scratch; just install/wire them in as described below. The
 user already has a terminal twin — a Node file (usually `twin.js`) that chats by
 dispatching `claude -p`. Your job is to **upgrade that file in place into a
 Slack bot**: same brain, new face. Do **not** create a second bot file sitting

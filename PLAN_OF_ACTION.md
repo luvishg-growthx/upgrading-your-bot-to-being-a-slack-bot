@@ -1,6 +1,6 @@
 # Plan of action — upgrade this twin into a Slack bot
 
-**Audience: the coding agent (Claude Code, Codex, or similar) doing the work.**
+**Audience: the coding agent (Claude Code, Codex, or any similar agent) doing the work.** These files are ready-made — integrate them as-is; don't rebuild the feature.
 This is the ordered execution plan. The full source + token setup lives in the
 guides — open the one for the detected stack and copy code from it:
 
