@@ -7,8 +7,12 @@ Slack bot**: same brain, new face. Do **not** create a second bot file sitting
 awkwardly next to `twin.py`. You are transforming `twin.py` itself into
 `slack_bot.py`.
 
-> **Node.js twin?** Use the Node guide instead:
-> `guide for implementing slack.md`.
+> ## ⚠️ First: confirm the stack
+> Check whether the user's agent is **Node.js** (`package.json` / `*.js`) or
+> **Python** (`requirements.txt` / `*.py`) — ask if unclear. **This is the
+> Python guide.** If their agent is **Node.js**, stop and follow
+> `guide for implementing slack.md` instead, so you install the files for the
+> right language.
 
 ---
 
