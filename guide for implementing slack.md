@@ -261,6 +261,117 @@ SLACK_APP_TOKEN=xapp-...
 
 ---
 
+## Step 6 — Outbound actions: send / edit / delete messages
+
+The bot above *replies* to people. To also let the twin **send, edit, delete,
+and list** Slack messages on its own (e.g. "post 'standup in 5' to #general",
+"delete that last message"), install the actions CLI + a skill.
+
+**6a. Create `slack-actions.js`** in the project root:
+
+```javascript
+#!/usr/bin/env node
+// slack-actions.js — send / edit / delete / list Slack messages from your agent.
+// Uses SLACK_BOT_TOKEN from .env. Slack only lets a bot edit/delete its OWN msgs.
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+const TOKEN = process.env.SLACK_BOT_TOKEN;
+if (!TOKEN) { console.error("Missing SLACK_BOT_TOKEN (set it in .env)."); process.exit(1); }
+
+async function slack(method, payload) {
+  const res = await fetch(`https://slack.com/api/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8", Authorization: `Bearer ${TOKEN}` },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(`${method} failed: ${data.error}`);
+  return data;
+}
+
+async function main() {
+  const [action, channel, ...rest] = process.argv.slice(2);
+  if (!action || !channel) {
+    console.error("usage: node slack-actions.js <send|edit|delete|list> <channel> [...]");
+    process.exit(1);
+  }
+  switch (action) {
+    case "send": {
+      const text = rest.join(" ");
+      if (!text) throw new Error("send needs message text");
+      const r = await slack("chat.postMessage", { channel, text });
+      console.log(`sent ts=${r.ts}`);
+      break;
+    }
+    case "edit": {
+      const [ts, ...textParts] = rest;
+      const text = textParts.join(" ");
+      if (!ts || !text) throw new Error("edit needs <ts> <text>");
+      await slack("chat.update", { channel, ts, text });
+      console.log(`edited ts=${ts}`);
+      break;
+    }
+    case "delete": {
+      const [ts] = rest;
+      if (!ts) throw new Error("delete needs <ts>");
+      await slack("chat.delete", { channel, ts });
+      console.log(`deleted ts=${ts}`);
+      break;
+    }
+    case "list": {
+      const limit = Number(rest[0] || 10);
+      const r = await slack("conversations.history", { channel, limit });
+      for (const m of r.messages || []) {
+        const text = (m.text || "").replace(/\s+/g, " ").slice(0, 100);
+        console.log(`${m.ts} | ${m.user || m.bot_id || "?"} | ${text}`);
+      }
+      break;
+    }
+    default:
+      console.error(`unknown action: ${action}`);
+      process.exit(1);
+  }
+}
+main().catch((e) => { console.error(e.message); process.exit(1); });
+```
+
+**6b. Create `.claude/skills/slack-message/SKILL.md`** so the twin knows it has
+these powers and calls the CLI via Bash:
+
+````markdown
+---
+name: slack-message
+description: Send, edit, delete, or list Slack messages on the user's behalf. Trigger whenever the user asks to post/send a Slack message, edit/update a message already sent, delete/remove a message, or look up recent messages in a channel.
+---
+
+# Act on Slack (send / edit / delete / list)
+
+Use the project's CLI via Bash (Node: `slack-actions.js`). Slack only lets the
+bot **edit/delete messages it posted itself.**
+
+```
+node slack-actions.js send   <channel> <text...>      # prints the ts — save it
+node slack-actions.js edit   <channel> <ts> <text...>
+node slack-actions.js delete <channel> <ts>
+node slack-actions.js list   <channel> [limit]        # "ts | user | text"
+```
+
+`<channel>` = channel ID (`C…`) or user ID (`U…`) for a DM.
+
+- "Send X to <channel>" → `send`, then report the ts.
+- "Edit/delete that message" → reuse the ts from a recent `send`, or `list` the
+  channel to find the bot's message first. Confirm before deleting if ambiguous.
+- Keep wording in the agent's voice unless the user gave exact text.
+````
+
+**6c.** Make sure the bot's Slack scopes include `chat:write` (send/edit/delete
+of its own messages) and the `*:history` scopes (for `list`) — they're already in
+the Step 4 scope list, so no change is needed. The twin runs with
+`bypassPermissions`, so it can already call the CLI via Bash.
+
+---
+
 ## Guardrails (do these, quietly)
 
 - **Upgrade in place — don't duplicate.** End with one app file (`slack-bot.js`)
@@ -274,4 +385,5 @@ SLACK_APP_TOKEN=xapp-...
   installed / on PATH for the shell that launched the bot.
 
 When finished, give the user a 3-line summary: that `twin.js` was upgraded into
-`slack-bot.js`, what you added, and the exact command to start the bot.
+`slack-bot.js`, that you added send/edit/delete via `slack-actions.js` + the
+`slack-message` skill, and the exact command to start the bot.

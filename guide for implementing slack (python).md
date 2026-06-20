@@ -254,6 +254,121 @@ SLACK_APP_TOKEN=xapp-...
 
 ---
 
+## Step 6 — Outbound actions: send / edit / delete messages
+
+The bot above *replies* to people. To also let the twin **send, edit, delete,
+and list** Slack messages on its own (e.g. "post 'standup in 5' to #general",
+"delete that last message"), install the actions CLI + a skill.
+
+**6a. Create `slack_actions.py`** in the project root:
+
+```python
+#!/usr/bin/env python3
+"""slack_actions.py — send / edit / delete / list Slack messages from your agent.
+Uses SLACK_BOT_TOKEN from .env. Slack only lets a bot edit/delete its OWN msgs."""
+import json, os, re, sys, urllib.request
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
+TOKEN = os.environ.get("SLACK_BOT_TOKEN")
+if not TOKEN:
+    print("Missing SLACK_BOT_TOKEN (set it in .env).", file=sys.stderr)
+    sys.exit(1)
+
+
+def slack(method: str, payload: dict) -> dict:
+    req = urllib.request.Request(
+        f"https://slack.com/api/{method}",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json; charset=utf-8", "Authorization": f"Bearer {TOKEN}"},
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        data = json.loads(resp.read().decode())
+    if not data.get("ok"):
+        raise RuntimeError(f"{method} failed: {data.get('error')}")
+    return data
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    if len(args) < 2:
+        print("usage: python slack_actions.py <send|edit|delete|list> <channel> [...]", file=sys.stderr)
+        sys.exit(1)
+    action, channel, rest = args[0], args[1], args[2:]
+    if action == "send":
+        text = " ".join(rest)
+        if not text:
+            raise RuntimeError("send needs message text")
+        r = slack("chat.postMessage", {"channel": channel, "text": text})
+        print(f"sent ts={r['ts']}")
+    elif action == "edit":
+        if len(rest) < 2:
+            raise RuntimeError("edit needs <ts> <text>")
+        ts, text = rest[0], " ".join(rest[1:])
+        slack("chat.update", {"channel": channel, "ts": ts, "text": text})
+        print(f"edited ts={ts}")
+    elif action == "delete":
+        if not rest:
+            raise RuntimeError("delete needs <ts>")
+        ts = rest[0]
+        slack("chat.delete", {"channel": channel, "ts": ts})
+        print(f"deleted ts={ts}")
+    elif action == "list":
+        limit = int(rest[0]) if rest else 10
+        r = slack("conversations.history", {"channel": channel, "limit": limit})
+        for m in r.get("messages", []):
+            text = re.sub(r"\s+", " ", m.get("text", ""))[:100]
+            print(f"{m.get('ts')} | {m.get('user') or m.get('bot_id') or '?'} | {text}")
+    else:
+        print(f"unknown action: {action}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+```
+
+**6b. Create `.claude/skills/slack-message/SKILL.md`** so the twin knows it has
+these powers and calls the CLI via Bash:
+
+````markdown
+---
+name: slack-message
+description: Send, edit, delete, or list Slack messages on the user's behalf. Trigger whenever the user asks to post/send a Slack message, edit/update a message already sent, delete/remove a message, or look up recent messages in a channel.
+---
+
+# Act on Slack (send / edit / delete / list)
+
+Use the project's CLI via Bash (Python: `slack_actions.py`). Slack only lets the
+bot **edit/delete messages it posted itself.**
+
+```
+python slack_actions.py send   <channel> <text...>      # prints the ts — save it
+python slack_actions.py edit   <channel> <ts> <text...>
+python slack_actions.py delete <channel> <ts>
+python slack_actions.py list   <channel> [limit]        # "ts | user | text"
+```
+
+`<channel>` = channel ID (`C…`) or user ID (`U…`) for a DM.
+
+- "Send X to <channel>" → `send`, then report the ts.
+- "Edit/delete that message" → reuse the ts from a recent `send`, or `list` the
+  channel to find the bot's message first. Confirm before deleting if ambiguous.
+- Keep wording in the agent's voice unless the user gave exact text.
+````
+
+**6c.** The Slack scopes from Step 4 already cover this (`chat:write` for
+send/edit/delete of the bot's own messages, `*:history` for `list`), so no scope
+change is needed. The twin runs with `bypassPermissions`, so it can call the CLI
+via Bash.
+
+---
+
 ## Guardrails (do these, quietly)
 
 - **Upgrade in place — don't duplicate.** End with one app file (`slack_bot.py`)
@@ -267,4 +382,5 @@ SLACK_APP_TOKEN=xapp-...
   installed / on PATH for the shell that launched the bot.
 
 When finished, give the user a 3-line summary: that `twin.py` was upgraded into
-`slack_bot.py`, what you added, and the exact command to start the bot.
+`slack_bot.py`, that you added send/edit/delete via `slack_actions.py` + the
+`slack-message` skill, and the exact command to start the bot.

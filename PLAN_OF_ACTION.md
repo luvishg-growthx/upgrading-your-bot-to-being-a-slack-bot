@@ -15,7 +15,8 @@ Work top to bottom. Don't skip steps. Each step has a ✅ done-check.
 Turn the user's existing terminal twin (`twin.js` / `twin.py`, which dispatches
 `claude -p`) **into a Slack bot, in place** — same brain, new face. End state:
 one bot file, no leftover terminal twin, replies posting into Slack threads in
-the twin's voice.
+the twin's voice, **plus** the twin can send / edit / delete Slack messages on
+its own (Step 8).
 
 ## Preconditions (verify first)
 - [ ] You are inside the user's twin project (a `CLAUDE.md` / persona is present).
@@ -74,9 +75,19 @@ the twin's voice.
       the twin's voice; confirm a follow-up in that thread works without a mention.
 - ✅ Done when: a real Slack message gets a correct in-voice reply.
 
-### 8. Report
-- [ ] Give the user a 3-line summary: twin upgraded → bot file, what was added,
-      and the exact start command.
+### 8. Outbound actions — send / edit / delete messages
+- [ ] Create `slack-actions.js` / `slack_actions.py` (from the guide's Step 6) in
+      the project root — a CLI for `send` / `edit` / `delete` / `list`.
+- [ ] Create `.claude/skills/slack-message/SKILL.md` (from the guide) so the twin
+      knows it can act on Slack and calls the CLI via Bash.
+- [ ] No new scopes needed: `chat:write` covers send/edit/delete of the bot's own
+      messages; `*:history` covers `list` (both already added in Step 6 tokens).
+- ✅ Done when: `node slack-actions.js send <channel> "test"` posts a message and
+      prints its ts (and `delete`/`edit` work on it).
+
+### 9. Report
+- [ ] Give the user a 3-line summary: twin upgraded → bot file, send/edit/delete
+      added, and the exact start command.
 
 ---
 

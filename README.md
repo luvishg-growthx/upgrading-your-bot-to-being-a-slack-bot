@@ -34,6 +34,9 @@ handbook — right inside the thread.
 - **Per-thread memory.** Each Slack thread keeps its own Claude session.
 - **One file, not two.** The terminal twin *becomes* the Slack bot — it doesn't
   get a second bot file bolted on beside it.
+- **Sends, edits & deletes too.** Beyond replying, the twin can post, edit,
+  delete, and list Slack messages on its own (via `slack-actions` + the
+  `slack-message` skill).
 - **Node *or* Python.** Pick whichever your twin is built in.
 
 ## How it works
@@ -79,6 +82,10 @@ instruction block at the top of this file).
    terminal twin into it:
    - Node: [`node/slack-bot.js`](node/slack-bot.js) → `slack-bot.js` in your root
    - Python: [`python/slack_bot.py`](python/slack_bot.py) → `slack_bot.py` in your root
+   - Also copy the actions CLI ([`node/slack-actions.js`](node/slack-actions.js)
+     / [`python/slack_actions.py`](python/slack_actions.py)) +
+     [`.claude/skills/slack-message/SKILL.md`](.claude/skills/slack-message/SKILL.md)
+     for send/edit/delete.
 2. Remove the old terminal `twin.js` / `twin.py` (its logic now lives in the bot).
 3. Create the Slack app and get two tokens — see
    **[`SLACK_APP_SETUP.md`](SLACK_APP_SETUP.md)**.
@@ -96,5 +103,6 @@ instruction block at the top of this file).
 | `guide for implementing slack.md`          | Paste-into-Claude guide — **Node** twin      |
 | `guide for implementing slack (python).md` | Paste-into-Claude guide — **Python** twin    |
 | `SLACK_APP_SETUP.md`                       | One-time Slack app creation (scopes, tokens) |
-| `node/`                                     | Reference Node bot (`@slack/bolt`) + env     |
-| `python/`                                   | Reference Python bot (`slack_bolt`) + env    |
+| `.claude/skills/slack-message/SKILL.md`    | Teaches the twin to send/edit/delete/list    |
+| `node/`                                     | Reference Node bot + `slack-actions.js` + env |
+| `python/`                                   | Reference Python bot + `slack_actions.py` + env |
