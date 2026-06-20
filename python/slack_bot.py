@@ -173,5 +173,13 @@ def on_message(event, say, client):
 
 
 if __name__ == "__main__":
+    # If the cronjobs module is also installed, auto-start its scheduler in this
+    # same process so scheduled messages fire even when only the Slack bot runs.
+    # Best-effort: no-op if scheduler.py isn't present.
+    try:
+        from scheduler import start_scheduler
+        start_scheduler()
+    except Exception:
+        pass
     print(f"⚡️ Twin Slack bot starting (twin dir: {TWIN_DIR})")
     SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()

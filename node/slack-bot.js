@@ -178,6 +178,12 @@ app.event("message", async ({ event, say, client }) => {
   await app.start();
   const auth = await app.client.auth.test();
   selfUserId = auth.user_id;
+  // If the cronjobs module is also installed, auto-start its scheduler in this
+  // same process so scheduled messages fire even when only the Slack bot runs.
+  // Best-effort: no-op if scheduler.js isn't present.
+  try {
+    require("./scheduler.js").startScheduler();
+  } catch (_) {}
   console.log(`⚡️ Twin Slack bot is running as @${auth.user} (${selfUserId})`);
   console.log(`   twin dir: ${TWIN_DIR}`);
 })();
