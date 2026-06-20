@@ -1,0 +1,13 @@
+{
+  "name": "twin-slack-bot",
+  "version": "1.0.0",
+  "description": "Run your Claude Code twin as a Slack app (Socket Mode, no API key).",
+  "main": "slack-bot.js",
+  "scripts": {
+    "start": "node slack-bot.js"
+  },
+  "dependencies": {
+    "@slack/bolt": "^4.3.0",
+    "dotenv": "^16.4.0"
+  }
+}
