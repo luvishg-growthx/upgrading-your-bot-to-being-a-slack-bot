@@ -2,17 +2,16 @@
 
 **Audience: the coding agent (Claude Code, Codex, or any similar agent) doing the work.** These files are ready-made — integrate them as-is; don't rebuild the feature.
 This is the ordered execution plan. The full source + token setup lives in the
-guides — open the one for the detected stack and copy code from it:
+guide — open it and copy code from it:
 
-- Node: `guide for implementing slack.md`
-- Python: `guide for implementing slack (python).md`
+- `guide for implementing slack.md`
 
 Work top to bottom. Don't skip steps. Each step has a ✅ done-check.
 
 ---
 
 ## Goal
-Turn the user's existing terminal twin (`twin.js` / `twin.py`, which dispatches
+Turn the user's existing terminal twin (`twin.js`, which dispatches
 `claude -p`) **into a Slack bot, in place** — same brain, new face. End state:
 one bot file, no leftover terminal twin, replies posting into Slack threads in
 the twin's voice, **plus** the twin can send / edit / delete Slack messages on
@@ -29,11 +28,10 @@ its own (Step 8).
 
 ## Steps
 
-### 1. Detect the stack
-- [ ] Node if `package.json` / `*.js` (twin usually `twin.js`).
-- [ ] Python if `requirements.txt`/`pyproject.toml` / `*.py` (twin usually `twin.py`).
-- [ ] If ambiguous, ask the user once. Announce the detected stack.
-- ✅ Done when: you've stated "Detected: Node" or "Detected: Python".
+### 1. Confirm it's a Node.js project
+- [ ] Node.js if `package.json` / `*.js` (twin usually `twin.js`). This module is
+      for Node.js twins.
+- ✅ Done when: you've confirmed it's a Node.js project.
 
 ### 2. Read the existing twin's brain
 - [ ] Open the terminal twin file. Record its `claude -p` invocation: working
@@ -42,21 +40,19 @@ its own (Step 8).
 - ✅ Done when: you can list the exact flags the current twin passes.
 
 ### 3. Write the bot file (upgrade in place)
-- [ ] Create `slack-bot.js` (Node) or `slack_bot.py` (Python) in the project
-      **root**, using the code from the matching guide.
+- [ ] Create `slack-bot.js` in the project **root**, using the code from the guide.
 - [ ] Merge in the custom flags from Step 2 so the Slack twin behaves identically
       to the terminal one.
 - [ ] Confirm `TWIN_DIR` resolves to the project root (where `CLAUDE.md` lives).
 - ✅ Done when: the bot file exists and contains the user's brain logic.
 
 ### 4. Remove the old terminal twin
-- [ ] Delete `twin.js` / `twin.py` (or rename to `*.bak` if the user wants a
+- [ ] Delete `twin.js` (or rename to `*.bak` if the user wants a
       backup). Update any `package.json`/run script that pointed at it.
 - ✅ Done when: only the new bot file remains as the app entry point.
 
 ### 5. Install dependencies
-- [ ] Node: `npm install @slack/bolt dotenv`
-- [ ] Python: `pip install slack_bolt python-dotenv` (and add to `requirements.txt`)
+- [ ] `npm install @slack/bolt dotenv`
 - ✅ Done when: deps install without error.
 
 ### 6. Slack app + tokens (USER does this — you can't)
@@ -69,14 +65,14 @@ its own (Step 8).
 - ✅ Done when: `.env` has both tokens and is ignored by git.
 
 ### 7. Run & verify
-- [ ] Start the bot from the project root (`node slack-bot.js` / `python slack_bot.py`).
+- [ ] Start the bot from the project root (`node slack-bot.js`).
 - [ ] Confirm the startup log prints the bot identity + twin dir.
 - [ ] In Slack, `@mention` the bot; confirm it reacts 👀 and replies in-thread in
       the twin's voice; confirm a follow-up in that thread works without a mention.
 - ✅ Done when: a real Slack message gets a correct in-voice reply.
 
 ### 8. Outbound actions — send / edit / delete messages
-- [ ] Create `slack-actions.js` / `slack_actions.py` (from the guide's Step 6) in
+- [ ] Create `slack-actions.js` (from the guide's Step 6) in
       the project root — a CLI for `send` / `edit` / `delete` / `list`.
 - [ ] Create `.claude/skills/slack-message/SKILL.md` (from the guide) so the twin
       knows it can act on Slack and calls the CLI via Bash.

@@ -6,8 +6,7 @@ description: Send, edit, delete, or list Slack messages on the user's behalf. Tr
 # Act on Slack (send / edit / delete / list)
 
 The project ships a small CLI for outbound Slack actions. Use it via Bash. It
-reads the bot token from the Slack module's `.env`. (Node: `slack-actions.js`;
-Python: `slack_actions.py` — use whichever exists.)
+reads the bot token from the Slack module's `.env` (`slack-actions.js`).
 
 > Slack only lets the bot **edit or delete messages it posted itself.**
 
@@ -16,7 +15,6 @@ Python: `slack_actions.py` — use whichever exists.)
 ```
 # Send — prints the message ts (timestamp). SAVE the ts if you may edit/delete it.
 node slack-actions.js send   <channel> <text...>
-python slack_actions.py send <channel> <text...>
 
 # Edit a message the bot sent
 node slack-actions.js edit   <channel> <ts> <new text...>
